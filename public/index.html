@@ -5,31 +5,51 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Nộp bài - Học Sinh</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f9f9f9; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+    input, button { padding: 10px; margin: 5px 0; width: 100%; }
+    button { cursor: pointer; }
+    #status { font-weight: bold; margin-bottom: 10px; color: green; }
+  </style>
 </head>
 <body>
-  <p id="status"></p>
-  <div class="container">
-    <h1>Nộp bài / Gửi ảnh</h1>
+
+<p id="status"></p>
+
+<div class="container">
+  <h1>Nộp bài / Gửi ảnh</h1>
+
+  <!-- Form -->
+  <form id="uploadForm">
     <label>Họ và tên</label>
-    <input id="name" placeholder="Nhập họ và tên" />
+    <input id="name" placeholder="Nhập họ và tên" required />
+
     <label>Chọn file (ảnh / pdf / docx)</label>
-    <input id="file" type="file" />
+    <input id="file" type="file" required />
+
     <label>Ghi chú (tùy chọn)</label>
     <input id="note" placeholder="Ghi chú..." />
-    <button id="send">Gửi bài</button>
-    <p id="status"></p>
-    <hr/>
-    <details>
-      <summary>Hướng dẫn nhanh</summary>
-      <ol>
-        <li>Nhập tên, chọn file rồi bấm "Gửi bài".</li>
-        <li>File sẽ được lưu vào thư mục <code>/uploads</code> trên server.</li>
-        <li>Thông tin lưu ở <code>submissions.json</code>.</li>
-      </ol>
-    </details>
-  </div>
-  <script src="app.js"></script>
+
+    <button type="submit">Gửi bài</button>
+  </form>
+
+  <p id="status"></p>
+
+  <hr/>
+
+  <details>
+    <summary>Hướng dẫn nhanh</summary>
+    <ol>
+      <li>Nhập tên, chọn file rồi bấm "Gửi bài".</li>
+      <li>File sẽ được lưu vào thư mục <code>/uploads</code> trên server.</li>
+      <li>Thông tin lưu ở <code>submissions.json</code>.</li>
+    </ol>
+  </details>
+</div>
+
+<!-- Script đặt cuối body -->
+<script src="app.js"></script>
+
 </body>
 </html>
-
-
