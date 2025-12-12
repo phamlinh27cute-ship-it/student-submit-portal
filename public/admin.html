@@ -1,38 +1,55 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Danh sách nộp bài - Admin</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Quản Lý Bài Nộp (Admin)</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .list {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 700px;
+            margin: auto;
+            box-shadow: 0 0 10px #ccc;
+        }
+
+        .entry {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .entry:last-child {
+            border-bottom: none;
+        }
+
+        .file-link {
+            color: blue;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Danh sách nộp bài</h1>
-    <button id="refresh">Lấy danh sách</button>
-    <table id="tbl" border="1" style="width:100%;border-collapse:collapse;margin-top:10px">
-      <thead><tr><th>#</th><th>Tên</th><th>Thời gian</th><th>Ghi chú</th><th>File</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-  <script>
-  async function load(){
-    const res = await fetch('/submissions');
-    const arr = await res.json();
-    const tbody = document.querySelector('#tbl tbody');
-    tbody.innerHTML = '';
-    arr.slice().reverse().forEach((s,i)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = '<td>' + (i+1) + '</td>' +
-        '<td>' + (s.name||'') + '</td>' +
-        '<td>' + (s.timestamp||'') + '</td>' +
-        '<td>' + (s.note||'') + '</td>' +
-        '<td>' + (s.filename ? `<a href="/uploads/${encodeURIComponent(s.filename)}" target="_blank">xem/tải</a>` : '') + '</td>';
-      tbody.appendChild(tr);
-    });
-  }
-  document.getElementById('refresh').onclick = load;
-  load();
-  </script>
+
+    <h1>📂 Danh sách bài học sinh đã nộp</h1>
+
+    <div class="list" id="list"></div>
+
+    <script src="app.js"></script>
 </body>
 </html>
+
+</body>
+</html>
+
