@@ -1,7 +1,7 @@
 const express = require('express');
 const multer  = require('multer');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 
@@ -10,26 +10,31 @@ if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
 }
 
-// Cấu hình nơi lưu file upload
+// Cấu hình Multer lưu file
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => {
     const unique = Date.now() + '-' + file.originalname;
-    cb(null, unique)
+    cb(null, unique);
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
+// Cho phép đọc file tĩnh
 app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+app.use("/uploads", express.static("uploads"));
+app.use(express.json());
 
-// =======================
-//    UPLOAD BÀI HỌC SINH
-// =======================
+// ========================
+// ROUTE: Học sinh upload
+// ========================
 app.post('/upload', upload.single('file'), (req, res) => {
+
+  if (!req.file) {
+    return res.json({ status: "ERROR", message: "Không nhận được file" });
+  }
+
   const entry = {
     filename: req.file.filename,
     time: Date.now()
@@ -43,22 +48,30 @@ app.post('/upload', upload.single('file'), (req, res) => {
   list.push(entry);
   fs.writeFileSync("submissions.json", JSON.stringify(list, null, 2));
 
-  res.send('Upload thành công!');
+  // Trả JSON để frontend không bị lỗi
+  res.json({
+    status: "OK",
+    message: "Upload thành công",
+    filename: req.file.filename,
+    time: entry.time
+  });
 });
 
-// =======================
-//      API CHO ADMIN
-// =======================
+// ========================
+// ROUTE: Admin lấy danh sách
+// ========================
 app.get("/list", (req, res) => {
   if (!fs.existsSync("submissions.json")) {
     return res.json([]);
   }
+
   const list = JSON.parse(fs.readFileSync("submissions.json"));
   res.json(list);
 });
 
-// =======================
-//        KHỞI ĐỘNG
-// =======================
+// ========================
+// Khởi động server
+// ========================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server chạy cổng " + PORT));
+
