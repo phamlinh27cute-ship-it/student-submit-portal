@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Danh sách nộp bài - Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Danh sách nộp bài</h1>
+    <button id="refresh">Lấy danh sách</button>
+    <table id="tbl" border="1" style="width:100%;border-collapse:collapse;margin-top:10px">
+      <thead><tr><th>#</th><th>Tên</th><th>Thời gian</th><th>Ghi chú</th><th>File</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script>
+  async function load(){
+    const res = await fetch('/submissions');
+    const arr = await res.json();
+    const tbody = document.querySelector('#tbl tbody');
+    tbody.innerHTML = '';
+    arr.slice().reverse().forEach((s,i)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + (i+1) + '</td>' +
+        '<td>' + (s.name||'') + '</td>' +
+        '<td>' + (s.timestamp||'') + '</td>' +
+        '<td>' + (s.note||'') + '</td>' +
+        '<td>' + (s.filename ? `<a href="/uploads/${encodeURIComponent(s.filename)}" target="_blank">xem/tải</a>` : '') + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  document.getElementById('refresh').onclick = load;
+  load();
+  </script>
+</body>
+</html>
