@@ -1,52 +1,64 @@
 const express = require('express');
-const multer = require('multer');
-const fs = require('fs');
+const multer  = require('multer');
 const path = require('path');
+const fs = require('fs');
+
 const app = express();
-const PORT = process.env.PORT || 3000;
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-const DATA_FILE = path.join(__dirname, 'submissions.json');
 
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify([]));
+// Tạo thư mục uploads nếu chưa có
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(UPLOAD_DIR));
-
-// Multer storage
+// Cấu hình nơi lưu file upload
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) { cb(null, UPLOAD_DIR); },
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
   filename: function (req, file, cb) {
-    const t = Date.now();
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.\-_\u00C0-\u024F ]/g, '_');
-    cb(null, t + '-' + safeName);
+    const unique = Date.now() + '-' + file.originalname;
+    cb(null, unique)
   }
 });
-const upload = multer({ storage: storage, limits: { fileSize: 50 * 1024 * 1024 } }); // up to 50MB
 
+const upload = multer({ storage: storage });
+
+app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
+
+// =======================
+//    UPLOAD BÀI HỌC SINH
+// =======================
 app.post('/upload', upload.single('file'), (req, res) => {
-  try {
-    const name = req.body.name || 'Unknown';
-    const note = req.body.note || '';
-    const timestamp = req.body.timestamp || new Date().toISOString();
-    const filename = req.file ? req.file.filename : null;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const entry = { name, note, timestamp, filename, ip };
-    const arr = JSON.parse(fs.readFileSync(DATA_FILE));
-    arr.push(entry);
-    fs.writeFileSync(DATA_FILE, JSON.stringify(arr, null, 2));
-    res.json({ status: 'OK', filename });
-  } catch (err) {
-    console.error(err);
-    res.json({ status: 'ERROR', error: err.message });
+  const entry = {
+    filename: req.file.filename,
+    time: Date.now()
+  };
+
+  let list = [];
+  if (fs.existsSync("submissions.json")) {
+    list = JSON.parse(fs.readFileSync("submissions.json"));
   }
+
+  list.push(entry);
+  fs.writeFileSync("submissions.json", JSON.stringify(list, null, 2));
+
+  res.send('Upload thành công!');
 });
 
-app.get('/submissions', (req, res) => {
-  try {
-    const arr = JSON.parse(fs.readFileSync(DATA_FILE));
-    res.json(arr);
-  } catch (err) { res.json([]); }
+// =======================
+//      API CHO ADMIN
+// =======================
+app.get("/list", (req, res) => {
+  if (!fs.existsSync("submissions.json")) {
+    return res.json([]);
+  }
+  const list = JSON.parse(fs.readFileSync("submissions.json"));
+  res.json(list);
 });
 
-app.listen(PORT, () => console.log('Server listening on port', PORT));
+// =======================
+//        KHỞI ĐỘNG
+// =======================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server chạy cổng " + PORT));
