@@ -1,54 +1,88 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+    // ======= HỌC SINH NỘP BÀI =======
     const form = document.getElementById("uploadForm");
     const nameInput = document.getElementById("name");
     const fileInput = document.getElementById("file");
-    const messageBox = document.getElementById("message");
-    const listBox = document.getElementById("list");
+    const noteInput = document.getElementById("note");
+    const statusBox = document.getElementById("status");
 
-    // === Học sinh nộp bài ===
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const formData = new FormData();
-            formData.append("name", nameInput.value);
-            formData.append("file", fileInput.files[0]);
+            if (!nameInput.value || !fileInput.files.length) {
+                statusBox.textContent = "❌ Vui lòng nhập tên và chọn file!";
+                return;
+            }
 
-            let res = await fetch("/upload", {
-                method: "POST",
-                body: formData
-            });
+            const fd = new FormData();
+            fd.append("name", nameInput.value);
+            fd.append("file", fileInput.files[0]);
+            fd.append("note", noteInput.value || "");
 
-            let data = await res.json();
+            try {
+                const res = await fetch("/upload", {
+                    method: "POST",
+                    body: fd
+                });
 
-            if (messageBox) {
-                messageBox.textContent = data.message;
+                const data = await res.json();
+
+                if (data.success) {
+                    statusBox.style.color = "green";
+                    statusBox.textContent = "✔ Upload thành công!";
+                    form.reset(); // Reset form sau khi gửi
+                } else {
+                    statusBox.style.color = "red";
+                    statusBox.textContent = "❌ Lỗi: " + data.message;
+                }
+
+            } catch (err) {
+                statusBox.style.color = "red";
+                statusBox.textContent = "❌ Lỗi kết nối server!";
+                console.error(err);
             }
         });
     }
 
-    // === Admin xem bài nộp ===
+    // ======= ADMIN XEM BÀI NỘP =======
+    const listBox = document.getElementById("list");
+
     if (listBox) {
         loadSubmissions();
     }
 
     async function loadSubmissions() {
-        const res = await fetch("/submissions");
-        const data = await res.json();
+        try {
+            const res = await fetch("/submissions");
+            const data = await res.json();
 
-        listBox.innerHTML = "";
+            listBox.innerHTML = "";
 
-        data.forEach(item => {
-            listBox.innerHTML += `
-                <div class="entry">
+            if (data.length === 0) {
+                listBox.innerHTML = "<p>Chưa có bài nộp nào.</p>";
+                return;
+            }
+
+            data.forEach(item => {
+                const div = document.createElement("div");
+                div.classList.add("entry");
+
+                div.innerHTML = `
                     <b>Học sinh:</b> ${item.name}<br>
+                    <b>Ghi chú:</b> ${item.note || "Không có"}<br>
                     <b>Thời gian:</b> ${item.time}<br>
-                    <a href="/uploads/${item.filename}" target="_blank">
-                        📄 Xem file
-                    </a>
-                </div>
-            `;
-        });
-    }
-});
+                    <a class="file-link" href="/uploads/${item.filename}" target="_blank">📄 Xem / Tải file</a>
+                `;
 
+                listBox.appendChild(div);
+            });
+
+        } catch (err) {
+            listBox.innerHTML = "<p>❌ Lỗi tải danh sách bài nộp!</p>";
+            console.error(err);
+        }
+    }
+
+});
