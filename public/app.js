@@ -1,29 +1,30 @@
-const send = document.getElementById('send');
-const status = document.getElementById('status');
-send.onclick = async () => {
-  const name = document.getElementById('name').value.trim();
-  const file = document.getElementById('file').files[0];
-  const note = document.getElementById('note').value || '';
-  if(!name){ alert('Vui lòng nhập tên'); return; }
-  if(!file){ alert('Vui lòng chọn file'); return; }
-  const fd = new FormData();
-  fd.append('name', name);
-  fd.append('note', note);
-  fd.append('timestamp', new Date().toISOString());
-  fd.append('file', file);
-  status.innerText = 'Đang gửi...';
-  try{
-    const res = await fetch('/upload', { method: 'POST', body: fd });
-    const j = await res.json();
-    if(j.status === 'OK'){
-      status.innerText = 'Gửi thành công! (' + j.filename + ')';
-      document.getElementById('name').value = '';
-      document.getElementById('file').value = '';
-      document.getElementById('note').value = '';
-    } else {
-      status.innerText = 'Lỗi: ' + (j.error || 'Không rõ');
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("uploadForm");
+  const statusBox = document.getElementById("status");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const fd = new FormData(form);
+
+    statusBox.innerText = "Đang gửi...";
+
+    try {
+      const res = await fetch("/upload", {
+        method: "POST",
+        body: fd
+      });
+
+      const data = await res.json();   // ← KHÔNG bị lỗi JSON nữa
+
+      if (data.status === "OK") {
+        statusBox.innerText = "✔ Gửi thành công!";
+      } else {
+        statusBox.innerText = "❌ Lỗi: " + data.message;
+      }
+
+    } catch (err) {
+      statusBox.innerText = "❌ Lỗi kết nối server!";
     }
-  } catch(err){
-    status.innerText = 'Lỗi mạng hoặc server: ' + err.message;
-  }
-};
+  });
+});
