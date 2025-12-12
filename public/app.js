@@ -1,30 +1,54 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("uploadForm");
-  const statusBox = document.getElementById("status");
+    const form = document.getElementById("uploadForm");
+    const nameInput = document.getElementById("name");
+    const fileInput = document.getElementById("file");
+    const messageBox = document.getElementById("message");
+    const listBox = document.getElementById("list");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    // === Học sinh nộp bài ===
+    if (form) {
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-    const fd = new FormData(form);
+            const formData = new FormData();
+            formData.append("name", nameInput.value);
+            formData.append("file", fileInput.files[0]);
 
-    statusBox.innerText = "Đang gửi...";
+            let res = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
 
-    try {
-      const res = await fetch("/upload", {
-        method: "POST",
-        body: fd
-      });
+            let data = await res.json();
 
-      const data = await res.json();   // ← KHÔNG bị lỗi JSON nữa
-
-      if (data.status === "OK") {
-        statusBox.innerText = "✔ Gửi thành công!";
-      } else {
-        statusBox.innerText = "❌ Lỗi: " + data.message;
-      }
-
-    } catch (err) {
-      statusBox.innerText = "❌ Lỗi kết nối server!";
+            if (messageBox) {
+                messageBox.textContent = data.message;
+            }
+        });
     }
-  });
+
+    // === Admin xem bài nộp ===
+    if (listBox) {
+        loadSubmissions();
+    }
+
+    async function loadSubmissions() {
+        const res = await fetch("/submissions");
+        const data = await res.json();
+
+        listBox.innerHTML = "";
+
+        data.forEach(item => {
+            listBox.innerHTML += `
+                <div class="entry">
+                    <b>Học sinh:</b> ${item.name}<br>
+                    <b>Thời gian:</b> ${item.time}<br>
+                    <a href="/uploads/${item.filename}" target="_blank">
+                        📄 Xem file
+                    </a>
+                </div>
+            `;
+        });
+    }
 });
+
